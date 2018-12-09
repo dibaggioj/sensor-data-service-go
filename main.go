@@ -1,15 +1,44 @@
 package main
 
 import (
-"log"
-"net/http"
-"github.com/gorilla/mux"
+	"log"
+	"net/http"
+	"github.com/gorilla/mux"
 	"time"
+	"fmt"
+	"database/sql"
+	_ "github.com/lib/pq"	// package needed (for registering its drivers with the database/sql package) but never directly referenced in code
+)
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "johndibaggio"
+	password = "p4ssw0rd"
+	dbname   = "sensor_data"
+	sslmode  = "disable"	// require
 )
 
 var dataset []DataPoint // TODO: replace with db
 
 func main() {
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslmode)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Successfully connected to postgres database %s", dbname)
+
+
 	dataset = append(dataset, DataPoint{ID: 0,
 		Time: time.Date(2018, 11, 17, 20, 34, 58, 651387237, time.UTC),
 		Data: &SensorData{Temperature: 72.0, Humidity: 0.13}})
