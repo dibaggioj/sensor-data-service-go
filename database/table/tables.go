@@ -5,13 +5,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dibaggioj/sensor-api/models"
+	"fmt"
 )
 
 const SQL_TABLE_CREATION_DATA_SET = `
 CREATE TABLE IF NOT EXISTS dataset (
 	id SERIAL PRIMARY KEY,
 	timestamp timestamp with time zone DEFAULT current_timestamp
-	data INTEGER REFERENCES measurements
+	data INTEGER REFERENCES measurements(id)
 )`
 
 const SQL_TABLE_CREATION_MEASUREMENTS = `
@@ -28,12 +29,14 @@ CREATE TABLE IF NOT EXISTS measurements (
 // context).
 type Table struct {
 	Connection *database.Connection
+	Name string
 }
 
 // DataTableConfig holds the configuration passed to
 // the DataTable "constructor" (`NewDataTable`).
 type DataTableConfig struct {
 	Connection *database.Connection
+	Name string
 	CreateSql string
 }
 
@@ -48,6 +51,7 @@ func NewDataTable(cfg DataTableConfig) (table Table, err error) {
 	}
 
 	table.Connection = cfg.Connection
+	table.Name = cfg.Name
 	// Always try to create the table just in case we don't create them at the database startup.
 	// This won't fail in case the table already exists.
 	if err = table.createTable(cfg.CreateSql); err != nil {
@@ -69,6 +73,50 @@ func (table *Table) createTable(qry string) (err error) {
 			qry)
 		return
 	}
+	return
+}
+
+func (table *Table) InsertDataPoint(row models.DataPoint) (newRow models.DataPoint, err error) {
+	// TODO: data validation
+
+	if !row.IsValid() {
+		fmt.Println("Data point is missing data, unable to add to table.");
+		return
+	}
+
+	qryDataPoint := `
+INSERT INTO dataset (data)
+VALUES ($1)
+RETURNING id`
+
+	qryData := `
+INSERT INTO measurements (temperature, humidity)
+VALUES ($1, $2)
+RETURNING id, temperature, humidity`
+
+	sensorDataPtr := models.SensorData{}
+	newRow.Data = &sensorDataPtr
+	err = table.Connection.Db.QueryRow(qryData, row.Data.Temperature, row.Data.Humidity).Scan(&newRow.Data.ID,
+		&newRow.Data.Temperature, &newRow.Data.Humidity)
+	if err != nil {
+		err = errors.Wrapf(err,
+			"Couldn't insert row into DB (%s)",
+			spew.Sdump(row))
+		return
+	}
+
+	fmt.Printf("## newRow.Data: %d, %d, %d", newRow.Data.ID, newRow.Data.Temperature, newRow.Data.Humidity)
+
+	err = table.Connection.Db.QueryRow(qryDataPoint, newRow.Data.ID).Scan(&newRow.ID)
+	if err != nil {
+		err = errors.Wrapf(err,
+			"Couldn't insert row into DB (%s)",
+			spew.Sdump(row))
+		return
+	}
+
+	fmt.Printf("## &newRow.ID: %d", newRow.ID)
+
 	return
 }
 

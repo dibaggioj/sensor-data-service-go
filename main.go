@@ -42,20 +42,28 @@ func main() {
 	connectionPtr := &connection
 
 
-	measurementsTableConfig := table.DataTableConfig{Connection: connectionPtr, CreateSql: table.SQL_TABLE_CREATION_MEASUREMENTS}
-	//dataSetTableConfig := table.DataTableConfig{Connection: connectionPtr, CreateSql: table.SQL_TABLE_CREATION_DATA_SET}
+	measurementsTableConfig := table.DataTableConfig{Connection: connectionPtr, Name: "measurements", CreateSql: table.SQL_TABLE_CREATION_MEASUREMENTS}
+	dataSetTableConfig := table.DataTableConfig{Connection: connectionPtr, Name: "dataset", CreateSql: table.SQL_TABLE_CREATION_DATA_SET}
 
 	measurementsTable, err := table.NewDataTable(measurementsTableConfig)
 	if err != nil {
 		panic(err)
 	} else {
-		fmt.Println("Successfully created measurements table")
+		fmt.Println("Successfully created table: " + measurementsTable.Name)
 	}
-	//table.NewDataTable(dataSetTableConfig)
 
-	testdata := models.SensorData{Temperature: 70.123, Humidity: 0.11234}
+	dataSetTable, err := table.NewDataTable(dataSetTableConfig)
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("Successfully created table: " + dataSetTable.Name)
+	}
 
-	row, err := measurementsTable.InsertSensorData(testdata)
+	testdata := models.DataPoint{ID: 0,
+		Timestamp: time.Date(2018, 11, 17, 20, 34, 58, 651387237, time.UTC),
+		Data: &models.SensorData{Temperature: 89.0, Humidity: 0.43}}
+
+	row, err := dataSetTable.InsertDataPoint(testdata)
 	if err != nil {
 		panic(err)
 	} else {

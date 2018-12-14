@@ -25,7 +25,7 @@ type Error struct {
 	Message 	string `json:"message,omitempty"`
 }
 
-func (dataPoint *DataPoint) isValid() bool {
+func (dataPoint *DataPoint) IsValid() bool {
 	if dataPoint.Data == nil {
 		return false
 	}
