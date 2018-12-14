@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"errors"
 	"fmt"
+	"github.com/dibaggioj/sensor-api/models"
 )
 
 func GetData(w http.ResponseWriter, r *http.Request) {
@@ -26,26 +27,26 @@ func GetData(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetDataPoint(id int64) (DataPoint, Error) {
-	var data DataPoint
-	var err Error
+func GetDataPoint(id int64) (models.DataPoint, models.Error) {
+	var data models.DataPoint
+	var err models.Error
 	for _, item := range dataset {
 		if item.ID == id {
 			return item, err
 		}
 	}
-	return data, Error{Error: errors.New("data point not found"),
+	return data, models.Error{Error: errors.New("data point not found"),
 	Message: fmt.Sprintf("Data point with ID %d not found", id)}
 }
 
-func GetDataPointReference(id int64) (*DataPoint, Error) {
-	var data *DataPoint
-	var err Error
+func GetDataPointReference(id int64) (*models.DataPoint, models.Error) {
+	var data *models.DataPoint
+	var err models.Error
 	for index, item := range dataset {
 		if item.ID == id {
 			return &dataset[index], err
 		}
 	}
-	return data, Error{Error: errors.New("data point not found"),
+	return data, models.Error{Error: errors.New("data point not found"),
 		Message: fmt.Sprintf("Data point with ID %d not found", id)}
 }

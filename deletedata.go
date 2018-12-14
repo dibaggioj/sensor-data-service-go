@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"errors"
 	"fmt"
+	"github.com/dibaggioj/sensor-api/models"
 )
 
 func DeleteData(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +22,6 @@ func DeleteData(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(Error{Error: errors.New("data point not found"),
+	json.NewEncoder(w).Encode(models.Error{Error: errors.New("data point not found"),
 		Message: fmt.Sprintf("Unable to delete data point, ID %d not found", id)})
 }

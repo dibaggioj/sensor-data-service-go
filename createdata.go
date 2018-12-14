@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"strconv"
+	"github.com/dibaggioj/sensor-api/models"
 )
 
 func CreateData(w http.ResponseWriter, r *http.Request) {
-	var data DataPoint
+	var data models.DataPoint
 	_ = json.NewDecoder(r.Body).Decode(&data)
 	data.ID = getNextID()
 
 	dataset = append(dataset, data)
-	responsePayload := DataChangePayload{ID: data.ID, Message: "Created data point"}
+	responsePayload := models.DataChangePayload{ID: data.ID, Message: "Created data point"}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(responsePayload)
@@ -21,15 +22,15 @@ func CreateData(w http.ResponseWriter, r *http.Request) {
 
 func UpdateData(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	var data *DataPoint
+	var data *models.DataPoint
 	id, _ := strconv.ParseInt(params["id"], 10, 64)
 	data, err := GetDataPointReference(id)
 	if err.Error == nil {
-		var updatedData DataPoint
+		var updatedData models.DataPoint
 		_ = json.NewDecoder(r.Body).Decode(&updatedData)
 		updatedData.ID = id
 		*data = updatedData
-		responsePayload := DataChangePayload{ID: data.ID, Message: "Updated data point"}
+		responsePayload := models.DataChangePayload{ID: data.ID, Message: "Updated data point"}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(responsePayload)
 	} else {
