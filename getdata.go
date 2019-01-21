@@ -13,10 +13,13 @@ import (
 func GetData(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	if params["id"] == "" {
-		json.NewEncoder(w).Encode(dataset)
+		var dataPoints []models.DataPoint
+		db.Find(&dataPoints)	// Get all records - SELECT * FROM data_points;
+		json.NewEncoder(w).Encode(dataPoints)
 	} else {
-		id, _ := strconv.ParseInt(params["id"], 10, 64)
-		data, err := GetDataPoint(id)
+		id, _ := strconv.ParseUint(params["id"], 10, 64)
+		// TODO: replace with db query
+		data, err := GetDataPoint(uint(id))
 		if err.Error == nil {
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(data)
@@ -27,7 +30,8 @@ func GetData(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetDataPoint(id int64) (models.DataPoint, models.Error) {
+func GetDataPoint(id uint) (models.DataPoint, models.Error) {
+	// TODO: replace with db query
 	var data models.DataPoint
 	var err models.Error
 	for _, item := range dataset {
@@ -39,7 +43,7 @@ func GetDataPoint(id int64) (models.DataPoint, models.Error) {
 	Message: fmt.Sprintf("Data point with ID %d not found", id)}
 }
 
-func GetDataPointReference(id int64) (*models.DataPoint, models.Error) {
+func GetDataPointReference(id uint) (*models.DataPoint, models.Error) {
 	var data *models.DataPoint
 	var err models.Error
 	for index, item := range dataset {

@@ -1,0 +1,134 @@
+{
+	"info": {
+		"name": "Sensor Data - Go REST API",
+		"_postman_id": "037dcce7-b69a-5ea6-1608-a5dab3608008",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Data",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/sensordata/api/data",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"sensordata",
+						"api",
+						"data"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Get Data",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/sensordata/api/data/3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"sensordata",
+						"api",
+						"data",
+						"3"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Create Data",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"timestamp\":\"2018-12-07T22:48:35.203498-07:00\",\"data\":{\"temperature\":70,\"humidity\":0.23}}\n"
+				},
+				"url": {
+					"raw": "http://localhost:8000/sensordata/api/data",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"sensordata",
+						"api",
+						"data"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Update Data",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"timestamp\":\"2018-12-01T22:48:35.203498-07:00\",\"data\":{\"temperature\":60,\"humidity\":0.24}}\n"
+				},
+				"url": {
+					"raw": "http://localhost:8000/sensordata/api/data/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"sensordata",
+						"api",
+						"data",
+						"2"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Data",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/sensordata/api/data/3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"sensordata",
+						"api",
+						"data",
+						"3"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		}
+	]
+}

@@ -12,9 +12,10 @@ import (
 
 func DeleteData(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id, _ := strconv.ParseInt(params["id"], 10, 64)
+	id, _ := strconv.ParseUint(params["id"], 10, 64)
 	for index, item := range dataset {
-		if item.ID == id {
+		if item.ID == uint(id) {
+			// TODO: replace with db query
 			dataset = append(dataset[:index], dataset[index+1:]...)
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(item)

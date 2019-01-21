@@ -11,9 +11,18 @@ import (
 func CreateData(w http.ResponseWriter, r *http.Request) {
 	var data models.DataPoint
 	_ = json.NewDecoder(r.Body).Decode(&data)
-	data.ID = getNextID()
 
-	dataset = append(dataset, data)
+	sensorData := data.Data
+
+	db.NewRecord(sensorData) // => returns `true` as primary key is blank
+	db.Create(&sensorData)
+	db.NewRecord(sensorData)
+
+	// TODO: hook up foreign key
+	db.NewRecord(data) // => returns `true` as primary key is blank
+	db.Create(&data)
+	db.NewRecord(data)
+
 	responsePayload := models.DataChangePayload{ID: data.ID, Message: "Created data point"}
 
 	w.WriteHeader(http.StatusOK)
@@ -23,12 +32,13 @@ func CreateData(w http.ResponseWriter, r *http.Request) {
 func UpdateData(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var data *models.DataPoint
-	id, _ := strconv.ParseInt(params["id"], 10, 64)
-	data, err := GetDataPointReference(id)
+	id, _ := strconv.ParseUint(params["id"], 10, 64)
+	// TODO: replace with db query
+	data, err := GetDataPointReference(uint(id))
 	if err.Error == nil {
 		var updatedData models.DataPoint
 		_ = json.NewDecoder(r.Body).Decode(&updatedData)
-		updatedData.ID = id
+		updatedData.ID = uint(id)
 		*data = updatedData
 		responsePayload := models.DataChangePayload{ID: data.ID, Message: "Updated data point"}
 		w.WriteHeader(http.StatusOK)
@@ -40,6 +50,6 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO: replace with DB query
-func getNextID() int64 {
+func getNextID() uint {
 	return dataset[len(dataset)-1].ID + 1
 }
