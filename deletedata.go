@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/mux"
 	"encoding/json"
 	"strconv"
-	"errors"
 	"fmt"
 	"github.com/dibaggioj/sensor-api/models"
 )
@@ -13,16 +12,25 @@ import (
 func DeleteData(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.ParseUint(params["id"], 10, 64)
-	for index, item := range dataset {
-		if item.ID == uint(id) {
-			// TODO: replace with db query
-			dataset = append(dataset[:index], dataset[index+1:]...)
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(item)
-			return
+	var err error
+	var errPayload models.Error
+	var dataPoint models.DataPoint
+	err = db.First(&dataPoint, id).Error
+	if err != nil {
+		errPayload = models.Error{Error: err, Message: fmt.Sprintf("Unable to find data point with ID %d", id)}
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(errPayload)
+	} else {
+		err = db.Delete(&dataPoint, id).Error
+		if err != nil {
+			errPayload = models.Error{
+				Error:   err,
+				Message: fmt.Sprintf("An error occurred while attempting to delete data point with ID %d", id)}
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(errPayload)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+			json.NewEncoder(w).Encode(dataPoint)
 		}
 	}
-	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(models.Error{Error: errors.New("data point not found"),
-		Message: fmt.Sprintf("Unable to delete data point, ID %d not found", id)})
 }

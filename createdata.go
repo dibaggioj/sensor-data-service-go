@@ -25,7 +25,7 @@ func CreateData(w http.ResponseWriter, r *http.Request) {
 
 	responsePayload := models.DataChangePayload{ID: data.ID, Message: "Created data point"}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(responsePayload)
 }
 

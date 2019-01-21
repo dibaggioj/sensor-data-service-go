@@ -18,29 +18,17 @@ func GetData(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(dataPoints)
 	} else {
 		id, _ := strconv.ParseUint(params["id"], 10, 64)
-		// TODO: replace with db query
-		data, err := GetDataPoint(uint(id))
-		if err.Error == nil {
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(data)
-		} else {
+		var dataPoint models.DataPoint
+		err := db.First(&dataPoint, id).Error
+		if err != nil {
+			errPayload := models.Error{Error: err, Message: fmt.Sprintf("Unable to find data point with ID %d", id)}
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(err)
+			json.NewEncoder(w).Encode(errPayload)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(dataPoint)
 		}
 	}
-}
-
-func GetDataPoint(id uint) (models.DataPoint, models.Error) {
-	// TODO: replace with db query
-	var data models.DataPoint
-	var err models.Error
-	for _, item := range dataset {
-		if item.ID == id {
-			return item, err
-		}
-	}
-	return data, models.Error{Error: errors.New("data point not found"),
-	Message: fmt.Sprintf("Data point with ID %d not found", id)}
 }
 
 func GetDataPointReference(id uint) (*models.DataPoint, models.Error) {
