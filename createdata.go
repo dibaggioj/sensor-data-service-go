@@ -25,7 +25,6 @@ func CreateData(w http.ResponseWriter, r *http.Request) {
 		fmt.Print(err.Error())
 	}
 
-	fmt.Printf("Temperature: %f-%d\n", data.SensorData.Temperature, data.SensorData.TemperatureUnit)
 	dataErr := data.Validate()
 	if dataErr == nil {
 		db.NewRecord(data)	// returns `true` as primary key is blank
@@ -58,19 +57,23 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(errPayload)
 			return
 		}
+
 		json.Unmarshal([]byte(body), &updatedData)
-		fmt.Printf("Temperature: %f-%d\nHumidity: %f\n", updatedData.SensorData.Temperature, updatedData.SensorData.TemperatureUnit, updatedData.SensorData.Humidity)
-		var sensorData *models.SensorData
-		var updatedSensorData *models.SensorData
-		sensorData = &data.SensorData
-		updatedSensorData = &updatedData.SensorData
-		var responsePayload *models.DataChangePayload
+
 		dataErr := updatedData.Validate()
 		if dataErr == nil {
+			var responsePayload *models.DataChangePayload
+			var sensorData *models.SensorData
+			var updatedSensorData *models.SensorData
+			sensorData = &data.SensorData
+			updatedSensorData = &updatedData.SensorData
+
 			sensorData.Temperature = updatedSensorData.Temperature
 			sensorData.TemperatureUnit = updatedSensorData.TemperatureUnit
 			sensorData.Humidity = updatedSensorData.Humidity
+
 			db.Save(&data)
+
 			responsePayload = &models.DataChangePayload{ID: data.ID, Message: "Updated data point"}
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(responsePayload)
