@@ -7,30 +7,14 @@ import (
 
 type DataPoint struct {
 	gorm.Model
-	//ID			uint     	`gorm:"primary_key" json:"id"`
-	Timestamp 	time.Time	`json:"timestamp"`
-	Data		*SensorData	`json:"data"`
+	Timestamp  time.Time   `json:"timestamp"`
+	SensorData SensorData `gorm:"foreignkey:ID" json:"data"`
 }
 type SensorData struct {
 	gorm.Model
-	//ID        	uint      `gorm:"primary_key" json:"id"`
-	Temperature	float64 	`gorm:"type:float(8);ps" json:"temperature,omitempty"`
-	Humidity	float64 	`gorm:"type:float(8);" json:"humidity,omitempty"`
+	Temperature	float64 	`gorm:"type:float(8);ps"`
+	Humidity	float64 	`gorm:"type:float(8);"`
 }
-
-//`gorm:"type:varchar(100);unique_index"`
-
-//type DataPoint struct {
-//	ID        int64       `json:"id,omitempty"`
-//	Timestamp time.Time   `json:"timestamp,omitempty"`
-//	Data      *SensorData `json:"data,omitempty"`
-//}
-
-//type SensorData struct {
-//	ID        int64       `json:"id,omitempty"`
-//	Temperature float64 `json:"temperature,omitempty"`
-//	Humidity 	float64 `json:"humidity,omitempty"`
-//}
 
 type DataChangePayload struct {
 	ID			uint   	`json:"id,omitempty"`
@@ -41,8 +25,14 @@ type Error struct {
 	Message 	string `json:"message,omitempty"`
 }
 
-func (dataPoint *DataPoint) IsValid() bool {
-	if dataPoint.Data == nil {
+func (dataPoint DataPoint) IsValid() bool {
+	var sensorData *SensorData
+	sensorData = &dataPoint.SensorData
+	if sensorData == nil {
+		return false
+	} else if sensorData.Humidity < 0 {
+		return false
+	} else if sensorData.Temperature < -459.67 {
 		return false
 	}
 	return true

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"strconv"
-	"errors"
 	"fmt"
 	"github.com/dibaggioj/sensor-api/models"
 )
@@ -29,16 +28,4 @@ func GetData(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(dataPoint)
 		}
 	}
-}
-
-func GetDataPointReference(id uint) (*models.DataPoint, models.Error) {
-	var data *models.DataPoint
-	var err models.Error
-	for index, item := range dataset {
-		if item.ID == id {
-			return &dataset[index], err
-		}
-	}
-	return data, models.Error{Error: errors.New("data point not found"),
-		Message: fmt.Sprintf("Data point with ID %d not found", id)}
 }
