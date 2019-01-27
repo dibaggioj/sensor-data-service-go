@@ -7,12 +7,25 @@ import (
 	"strconv"
 	"github.com/dibaggioj/sensor-api/models"
 	"fmt"
+	"io/ioutil"
 )
 
 func CreateData(w http.ResponseWriter, r *http.Request) {
 	var data models.DataPoint
-	_ = json.NewDecoder(r.Body).Decode(&data)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v", err)
+		errPayload := models.Error{Error: err, Message: "Unable to read request body. Failed to create data point."}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errPayload)
+		return
+	}
+	err = json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
 
+	fmt.Printf("Temperature: %f-%d\n", data.SensorData.Temperature, data.SensorData.TemperatureUnit)
 	dataErr := data.Validate()
 	if dataErr == nil {
 		db.NewRecord(data)	// returns `true` as primary key is blank
@@ -37,14 +50,22 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 	err := db.First(&data, id).Error
 	if err == nil {
 		var updatedData models.DataPoint
-		_ = json.NewDecoder(r.Body).Decode(&updatedData)
-		updatedData.ID = uint(id)
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			fmt.Printf("Error reading body: %v", err)
+			errPayload := models.Error{Error: err, Message: "Unable to read request body. Failed to create data point."}
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(errPayload)
+			return
+		}
+		json.Unmarshal([]byte(body), &updatedData)
+		fmt.Printf("Temperature: %f-%d\nHumidity: %f\n", updatedData.SensorData.Temperature, updatedData.SensorData.TemperatureUnit, updatedData.SensorData.Humidity)
 		var sensorData *models.SensorData
 		var updatedSensorData *models.SensorData
 		sensorData = &data.SensorData
 		updatedSensorData = &updatedData.SensorData
 		var responsePayload *models.DataChangePayload
-		dataErr := data.Validate()
+		dataErr := updatedData.Validate()
 		if dataErr == nil {
 			sensorData.Temperature = updatedSensorData.Temperature
 			sensorData.TemperatureUnit = updatedSensorData.TemperatureUnit

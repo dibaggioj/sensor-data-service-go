@@ -10,7 +10,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var dataset []models.DataPoint // TODO: replace with db
 var db *gorm.DB
 
 func main() {
