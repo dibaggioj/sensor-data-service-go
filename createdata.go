@@ -6,20 +6,28 @@ import (
 	"github.com/gorilla/mux"
 	"strconv"
 	"github.com/dibaggioj/sensor-api/models"
+	"fmt"
 )
 
 func CreateData(w http.ResponseWriter, r *http.Request) {
 	var data models.DataPoint
 	_ = json.NewDecoder(r.Body).Decode(&data)
 
-	db.NewRecord(data)	// returns `true` as primary key is blank
-	db.Create(&data)
-	db.NewRecord(data)	// returns `false` since record has been created
+	dataErr := data.Validate()
+	if dataErr == nil {
+		db.NewRecord(data)	// returns `true` as primary key is blank
+		db.Create(&data)
+		db.NewRecord(data)	// returns `false` since record has been created
 
-	responsePayload := models.DataChangePayload{ID: data.ID, Message: "Created data point"}
+		responsePayload := models.DataChangePayload{ID: data.ID, Message: "Created data point"}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(responsePayload)
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(responsePayload)
+	} else {
+		errPayload := models.Error{Error: dataErr, Message: "Unable to create data point"}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errPayload)
+	}
 }
 
 func UpdateData(w http.ResponseWriter, r *http.Request) {
@@ -35,16 +43,24 @@ func UpdateData(w http.ResponseWriter, r *http.Request) {
 		var updatedSensorData *models.SensorData
 		sensorData = &data.SensorData
 		updatedSensorData = &updatedData.SensorData
-		if updatedSensorData != nil {
+		var responsePayload *models.DataChangePayload
+		dataErr := data.Validate()
+		if dataErr == nil {
 			sensorData.Temperature = updatedSensorData.Temperature
+			sensorData.TemperatureUnit = updatedSensorData.TemperatureUnit
 			sensorData.Humidity = updatedSensorData.Humidity
+			db.Save(&data)
+			responsePayload = &models.DataChangePayload{ID: data.ID, Message: "Updated data point"}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(responsePayload)
+		} else {
+			errPayload := models.Error{Error: dataErr, Message: fmt.Sprintf("Unable to update data point with ID %d", id)}
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(errPayload)
 		}
-		db.Save(&data)
-		responsePayload := models.DataChangePayload{ID: data.ID, Message: "Updated data point"}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(responsePayload)
 	} else {
+		errPayload := models.Error{Error: err, Message: fmt.Sprintf("Unable to find data point with ID %d", id)}
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(err)
+		json.NewEncoder(w).Encode(errPayload)
 	}
 }
